@@ -1,0 +1,226 @@
+
+<head>
+    <script>
+        $(document).ready(function(){
+    $("#gen_btn").click(function(){
+        var url1 = "http://localhost:8080/E/rest/course";
+        var data1 = $.getJSON(url1);
+        var data = JSON.stringify(data1);
+        if(data === '')
+            return;
+        
+        JSONToCSVConvertor(data, "Vehicle Report", true);
+    });
+});
+
+function JSONToCSVConvertor(JSONData, ReportTitle, ShowLabel) {
+    //If JSONData is not an object then JSON.parse will parse the JSON string in an Object
+    var arrData = typeof JSONData !== 'object' ? JSON.parse(JSONData) : JSONData;
+    
+    var CSV = '';    
+    //Set Report title in first row or line
+    
+    CSV += ReportTitle + '\r\n\n';
+
+    //This condition will generate the Label/Header
+    if (ShowLabel) {
+        var row = "";
+        
+        //This loop will extract the label from 1st index of on array
+        for (var index in arrData[0]) {
+            
+            //Now convert each value to string and comma-seprated
+            row += index + ',';
+        }
+
+        row = row.slice(0, -1);
+        
+        //append Label row with line break
+        CSV += row + '\r\n';
+    }
+    
+    //1st loop is to extract each row
+    for (var i = 0; i < arrData.length; i++) {
+        var row = "";
+        
+        //2nd loop will extract each column and convert it in string comma-seprated
+        for (var index in arrData[i]) {
+            row += '"' + arrData[i][index] + '",';
+        }
+
+        row.slice(0, row.length - 1);
+        
+        //add a line break after each row
+        CSV += row + '\r\n';
+    }
+
+    if (CSV === '') {        
+        alert("Invalid data");
+        return;
+    }   
+    
+    //Generate a file name
+    var fileName = "MyReport_";
+    //this will remove the blank-spaces from the title and replace it with an underscore
+    fileName += ReportTitle.replace(/ /g,"_");   
+    
+    //Initialize file format you want csv or xls
+    var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
+    
+    // Now the little tricky part.
+    // you can use either>> window.open(uri);
+    // but this will not work in some browsers
+    // or you will not get the correct file extension    
+    
+    //this trick will generate a temp <a /> tag
+    var link = document.createElement("a");    
+    link.href = uri;
+    
+    //set the visibility hidden so it will not effect on your web-layout
+    link.style = "visibility:hidden";
+    link.download = fileName + ".csv";
+    
+    //this part will append the anchor tag and remove it after automatic click
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+    </script>
+</head>
+
+
+
+<input type=button value="gen csv" id="gen_btn" style="margin-left: 5px" class="btn btn-default btn-lg"/>
+
+
+
+
+<button style="margin-left: 5px" class="btn btn-default btn-lg" data-toggle="modal" data-target="#addCourse">
+  Add New Course
+</button>
+<button style="margin-left: 5px" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#editCourse">
+  Edit Course
+</button>
+<button style="margin-left: 5px" class="btn btn-danger btn-lg" data-toggle="modal" data-target="#deleteCourse">
+  Delete Course
+</button>
+
+
+<div data-bind=" kendoGrid: {
+                data: coursesData, 
+                height :400, 
+                width:200, 
+                columns : courseColumns, 
+                scrollable: true, 
+                filterable: {
+                    operators: {
+                        string: {
+                            eq: 'Equals to',
+                            neq: 'Not Equals to',
+                            contain: 'Contains'
+                                },
+                        number: {
+                            eq: 'Equal to',
+                            neq: 'Not equal to',
+                            gte: 'Greater than or equal to',
+                            gt: 'Greater than',
+                            lt: 'Less than',
+                            lte: 'Less than or equal to'
+                                }
+                               },  
+                    extra: false,
+                    messages: {
+                        info: 'Filter by: ',
+                        filter: 'Apply filter',
+                        clear: 'Clear filter'
+                              }
+                        },
+                sortable: {
+                    mode: 'multiple'
+                },
+                groupable: {
+                    messages: {
+                        empty: 'Drop Columns Here'
+                    }
+                },
+                navigatable: true,
+                selectable: 'multiple cell',   
+                resizable: true,
+                reorderable: true,
+                pageable: { pageSize: 10,refresh: true } 
+                }">
+</div>
+
+
+<!--SAVE NEW-->
+
+<div class="form-group modal fade" id="addCourse" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                    <label for="abbr">Abbrevation :</label>
+                    <input type="text" name="abbr" data-bind="value: insertableCourse.abbr" required />
+                    <label for="abbr">Title :</label>
+                    <input type="text" name="abbr" data-bind="value: insertableCourse.title" required /><br>
+                    <button style="float:left; margin: 5px" class="btn btn-success btn-sm" type="button" data-bind="click: saveCourse">Add Course</button>
+                    <button style="float:left; margin: 5px" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+   
+    
+<!--UPDATE-->
+<div class="modal fade" id="editCourse" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="panel panel-warning col-lg-4">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="icon-long-arrow-right"></i>Update Course</h3>
+                    </div>
+                    <div class="panel-body">
+                        <label for="course_id">Course ID:</label>
+                        <input type="text" class="form-control" id="course_id" data-bind="value: editableCourse.course_id">            
+                        <label for="abbr">Abbrevation:</label>
+                        <input type="text" class="form-control" id="abbr" data-bind="value: editableCourse.abbr">
+                        <label for="title">Title:</label>
+                        <input type="text" class="form-control" id="title" data-bind="value: editableCourse.title"><br>
+                        <button style="float:left; margin: 5px" class="btn btn-success btn-sm" type="button" data-bind="click: updateCourse">Update Course</button>
+                        <button style="float:left; margin: 5px" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <div  style="clear:both; text-align:center; margin:0px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Delete-->
+<div class="modal fade" id="deleteCourse" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="panel panel-warning col-lg-4">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="icon-long-arrow-right"></i>Delete Course</h3>
+                    </div>
+                    <div class="panel-body">
+                        <label for="course_id">Course ID:</label>
+                        <input type="text" class="form-control" id="course_id" data-bind="value: deleteableCourse.course_id">  <br>          
+                        <button style="float:left; margin: 5px" class="btn btn-success btn-sm" type="button" data-bind="click: deleteCourse">Delete Course</button>
+                        <button style="float:left; margin: 5px" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <div  style="clear:both; text-align:center; margin:0px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
