@@ -61,18 +61,18 @@ public class CustomerService {
     /**
      * GET by id
      *
-     * @param customer_id
+     * @param institute_id
      * @return list
      */
     @GET
-    @Path("/{customer_id}")
+    @Path("/{institute_id}")
     @Produces("application/json")
-    public List<Customer> findCustomerById(@PathParam("customer_id") long customer_id) {
+    public List<Customer> findCustomerById(@PathParam("institute_id") long institute_id) {
         List<Customer> customers = null;
         Session session = dbmanager.getSessionFactory().openSession();
         try {
             Transaction tx = session.beginTransaction();
-            customers = (List<Customer>) session.getNamedQuery("findCustomerById").setLong("customer_id", customer_id).list();
+            customers = (List<Customer>) session.getNamedQuery("findCustomerById").setLong("institute_id", institute_id).list();
             tx.commit();
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -93,7 +93,7 @@ public class CustomerService {
         Session session = dbmanager.getSessionFactory().openSession();
         try {
             Transaction tx = session.beginTransaction();
-            /// this will update the record in database, using customer_id in objCustomer
+            /// this will update the record in database, using institute_id in objCustomer
             session.update(objCustomer);
             tx.commit();
         } catch (Exception e) {
@@ -131,7 +131,7 @@ public class CustomerService {
         Session session = dbmanager.getSessionFactory().openSession();
         try {
             Transaction tx = session.beginTransaction();
-            /// this will delete the record in database, using customer_id in objCustomer
+            /// this will delete the record in database, using institute_id in objCustomer
             session.delete(objCustomer);
             tx.commit();
         } catch (Exception e) {
